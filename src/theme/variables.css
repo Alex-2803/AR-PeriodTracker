@@ -1,2 +1,106 @@
-/* For information on how to create your own theme, please refer to:
-http://ionicframework.com/docs/theming/ */
+/* Register custom font */
+@font-face {
+  font-family: "bonuscoffee";
+  src: url("/assets/bonuscoffee.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Ionic global variables */
+:root {
+  --ion-font-family: "bonuscoffee", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Tailwind layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom animations */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(400%); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Utility classes */
+.smooth-transition {
+  transition: all 0.3s ease;
+}
+
+.shadow-card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-soft {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-scan {
+  animation: scan 2s linear infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Gradient text */
+.text-gradient {
+  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .container-padding {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .text-responsive {
+    font-size: 0.875rem;
+  }
+}
+
+/* Fix modal background transparency */
+ion-modal {
+  --background: #ffffff;
+  --ion-background-color: #ffffff;
+}
+
+ion-modal ion-content {
+  --background: #ffffff;
+  --ion-background-color: #ffffff;
+}
+
+/* Ensure modal content has white background */
+.ion-modal-content {
+  background: #ffffff !important;
+}
+
+/* Fix backdrop opacity */
+ion-modal::part(backdrop) {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
