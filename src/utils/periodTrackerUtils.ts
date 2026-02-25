@@ -1,4 +1,4 @@
-// Helper function to get date in readable format
+// Helper function to get date in readable format (FULL format with year)
 const formatDisplayDate = (dateString: string): string => {
   try {
     const [year, month, day] = dateString.split('-').map(Number);
@@ -6,7 +6,22 @@ const formatDisplayDate = (dateString: string): string => {
     return date.toLocaleDateString('en-US', { 
       weekday: 'short', 
       month: 'short', 
-      day: 'numeric' 
+      day: 'numeric',
+      year: 'numeric'  // Add year here for full format
+    });
+  } catch {
+    return dateString;
+  }
+};
+
+// NEW: Helper function for compact format (Month Day only, no year)
+const formatCompactDate = (dateString: string): string => {
+  try {
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric'
     });
   } catch {
     return dateString;
@@ -30,7 +45,32 @@ export const getLastPeriodDate = (): string | null => {
   }
 };
 
-// NEW: Get the last period end date from localStorage
+// NEW: Get the last period day (most recent from allPeriodDays)
+export const getLastPeriodDay = (): string | null => {
+  try {
+    const savedAllDays = localStorage.getItem('allPeriodDays');
+    if (!savedAllDays) return null;
+    
+    const allPeriodDays = JSON.parse(savedAllDays);
+    if (allPeriodDays.length === 0) return null;
+    
+    // Sort and get the most recent day
+    const sortedDays = [...allPeriodDays].sort((a, b) => {
+      const [aYear, aMonth, aDay] = a.split('-').map(Number);
+      const [bYear, bMonth, bDay] = b.split('-').map(Number);
+      const dateA = new Date(aYear, aMonth - 1, aDay);
+      const dateB = new Date(bYear, bMonth - 1, bDay);
+      return dateB.getTime() - dateA.getTime();
+    });
+    
+    return sortedDays[0];
+  } catch {
+    console.error('Error getting last period day');
+    return null;
+  }
+};
+
+// Get the last period end date from localStorage
 export const getLastPeriodEndDate = (): string | null => {
   try {
     const savedEndDates = localStorage.getItem('periodEndDates');
@@ -54,7 +94,21 @@ export const getFormattedLastPeriod = (): string | null => {
   return formatDisplayDate(lastPeriod);
 };
 
-// NEW: Get formatted last period end display
+// NEW: Get formatted last period day (most recent)
+export const getFormattedLastPeriodDay = (): string | null => {
+  const lastDay = getLastPeriodDay();
+  if (!lastDay) return null;
+  return formatDisplayDate(lastDay);
+};
+
+// NEW: Get compact format for last period day
+export const getCompactLastPeriodDay = (): string | null => {
+  const lastDay = getLastPeriodDay();
+  if (!lastDay) return null;
+  return formatCompactDate(lastDay);
+};
+
+// Get formatted last period end display
 export const getFormattedLastPeriodEnd = (): string | null => {
   const lastPeriodEnd = getLastPeriodEndDate();
   if (!lastPeriodEnd) return null;

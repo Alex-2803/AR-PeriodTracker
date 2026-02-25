@@ -31,7 +31,6 @@ import {
   chevronForward,
   chevronDown,
   chevronUp,
-  eyeOutline,
   listOutline,
   analyticsOutline,
   warningOutline,
@@ -109,27 +108,28 @@ const PeriodTracker: React.FC = () => {
     );
   };
 
-  // Load saved data from localStorage on component mount
-  useEffect(() => {
-    try {
-      const savedDates = localStorage.getItem("periodStartDates");
-      if (savedDates) {
-        setPeriodStartDates(JSON.parse(savedDates));
-      }
-
-      const savedSelectedDays = localStorage.getItem("selectedDays");
-      if (savedSelectedDays) {
-        setSelectedDays(JSON.parse(savedSelectedDays));
-      }
-
-      const savedAllPeriodDays = localStorage.getItem("allPeriodDays");
-      if (savedAllPeriodDays) {
-        setAllPeriodDays(JSON.parse(savedAllPeriodDays));
-      }
-    } catch (error) {
-      console.error("Error loading saved data:", error);
+// Load saved data from localStorage on component mount
+useEffect(() => {
+  try {
+    const savedDates = localStorage.getItem("periodStartDates");
+    if (savedDates) {
+      setPeriodStartDates(JSON.parse(savedDates));
     }
-  }, []);
+
+    const savedSelectedDays = localStorage.getItem("selectedDays");
+    if (savedSelectedDays) {
+      setSelectedDays(JSON.parse(savedSelectedDays));
+    }
+
+    const savedAllPeriodDays = localStorage.getItem("allPeriodDays");
+    if (savedAllPeriodDays) {
+      setAllPeriodDays(JSON.parse(savedAllPeriodDays));
+    }
+  } catch (error) {
+    console.error("Error loading saved data:", error);
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []); // Add the eslint-disable comment since we only want this to run once on mount
 
   // Save period dates to localStorage whenever they change
   useEffect(() => {
@@ -265,27 +265,6 @@ const PeriodTracker: React.FC = () => {
     }
   };
 
-  // Format date for compact display
-  const formatCompactDate = (dateString: string) => {
-    try {
-      const date = parseDateString(dateString);
-      const today = getToday();
-      const diffTime = today.getTime() - date.getTime();
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-      if (diffDays === 0) return "Today";
-      if (diffDays === 1) return "Yesterday";
-      if (diffDays < 7) return `${diffDays} days ago`;
-
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      });
-    } catch (error) {
-      console.error("Error formatting compact date:", error);
-      return "Recent";
-    }
-  };
 
   // Get actual days since last period
   const getActualDaysSinceLastPeriod = () => {
@@ -566,63 +545,63 @@ const PeriodTracker: React.FC = () => {
     }
   };
 
-  // Remove a specific period - removes all days from that period
-  const removePeriod = (periodStartDate: string) => {
-    try {
-      // Find all days from this period
-      const periodStart = parseDateString(periodStartDate);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const removePeriod = (periodStartDate: string) => {
+  try {
+    // Find all days from this period
+    const periodStart = parseDateString(periodStartDate);
 
-      // Find the next period start to determine length
-      const periodIndex = periodStartDates.indexOf(periodStartDate);
-      let periodLength = 1; // Default to 1 day if we can't determine
+    // Find the next period start to determine length
+    const periodIndex = periodStartDates.indexOf(periodStartDate);
+    let periodLength = 1; // Default to 1 day if we can't determine
 
-      if (periodIndex < periodStartDates.length - 1) {
-        const nextPeriodStart = parseDateString(
-          periodStartDates[periodIndex + 1],
-        );
-        // Estimate period length based on cycle day of next period start
-        const diffDays = Math.ceil(
-          (nextPeriodStart.getTime() - periodStart.getTime()) /
-            (1000 * 60 * 60 * 24),
-        );
-        periodLength = Math.min(diffDays - 1, 7); // Max 7 days
-      }
-
-      // Generate all dates for this period
-      const periodDates: string[] = [];
-      for (let i = 0; i < periodLength; i++) {
-        const date = new Date(periodStart);
-        date.setDate(date.getDate() + i);
-        periodDates.push(getFormattedDate(date));
-      }
-
-      // Remove period start date
-      const newPeriodStartDates = periodStartDates.filter(
-        (date) => date !== periodStartDate,
+    if (periodIndex < periodStartDates.length - 1) {
+      const nextPeriodStart = parseDateString(
+        periodStartDates[periodIndex + 1],
       );
-
-      // Remove all period days
-      const newAllPeriodDays = allPeriodDays.filter(
-        (date) => !periodDates.includes(date),
+      // Estimate period length based on cycle day of next period start
+      const diffDays = Math.ceil(
+        (nextPeriodStart.getTime() - periodStart.getTime()) /
+          (1000 * 60 * 60 * 24),
       );
-
-      setPeriodStartDates(newPeriodStartDates);
-      setAllPeriodDays(newAllPeriodDays);
-
-      localStorage.setItem(
-        "periodStartDates",
-        JSON.stringify(newPeriodStartDates),
-      );
-      localStorage.setItem("allPeriodDays", JSON.stringify(newAllPeriodDays));
-
-      setToastMessage("Period removed");
-      setShowToast(true);
-    } catch (error) {
-      console.error("Error removing period:", error);
-      setToastMessage("Error removing period");
-      setShowToast(true);
+      periodLength = Math.min(diffDays - 1, 7); // Max 7 days
     }
-  };
+
+    // Generate all dates for this period
+    const periodDates: string[] = [];
+    for (let i = 0; i < periodLength; i++) {
+      const date = new Date(periodStart);
+      date.setDate(date.getDate() + i);
+      periodDates.push(getFormattedDate(date));
+    }
+
+    // Remove period start date
+    const newPeriodStartDates = periodStartDates.filter(
+      (date) => date !== periodStartDate,
+    );
+
+    // Remove all period days
+    const newAllPeriodDays = allPeriodDays.filter(
+      (date) => !periodDates.includes(date),
+    );
+
+    setPeriodStartDates(newPeriodStartDates);
+    setAllPeriodDays(newAllPeriodDays);
+
+    localStorage.setItem(
+      "periodStartDates",
+      JSON.stringify(newPeriodStartDates),
+    );
+    localStorage.setItem("allPeriodDays", JSON.stringify(newAllPeriodDays));
+
+    setToastMessage("Period removed");
+    setShowToast(true);
+  } catch (error) {
+    console.error("Error removing period:", error);
+    setToastMessage("Error removing period");
+    setShowToast(true);
+  }
+};
 
   // Generate calendar grid with proper weekday alignment
   const generateCalendarGrid = () => {
@@ -651,11 +630,11 @@ const PeriodTracker: React.FC = () => {
   // Get day name for calendar header
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  // Get latest logged period
-  const getLatestPeriod = () => {
-    if (periodStartDates.length === 0) return null;
-    return periodStartDates[periodStartDates.length - 1];
-  };
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getLatestPeriod = () => {
+  if (periodStartDates.length === 0) return null;
+  return periodStartDates[periodStartDates.length - 1];
+};
 
   // Get all cycle phases for display - FIXED: Uses biologically accurate phases
   const getAllCyclePhases = () => {
@@ -1594,201 +1573,178 @@ const PeriodTracker: React.FC = () => {
             </IonCard>
           </div>
 
-          {/* PERIOD HISTORY */}
-          {periodStartDates.length > 0 && (
-            <div className="mb-6">
-              <IonCard className="rounded-2xl">
-                <IonCardHeader>
-                  <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
-                    <IonCardTitle className="flex items-center text-base md:text-lg">
-                      <IonIcon
-                        icon={listOutline}
-                        className="mr-2 text-[#4e9dbf]"
-                      />
-                      <span>Period History</span>
-                    </IonCardTitle>
+{/* PERIOD HISTORY */}
+{allPeriodDays.length > 0 && (
+  <div className="mb-6">
+    <IonCard className="rounded-2xl">
+      <IonCardHeader>
+        <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+          <IonCardTitle className="flex items-center text-base md:text-lg">
+            <IonIcon
+              icon={listOutline}
+              className="mr-2 text-[#4e9dbf]"
+            />
+            <span>Period History</span>
+          </IonCardTitle>
+          <div className="flex items-center space-x-3">
+            <span className="text-sm text-gray-500">
+              {allPeriodDays.length} day{allPeriodDays.length !== 1 ? "s" : ""} logged
+            </span>
+            <button
+              onClick={() => setShowClearAlert(true)}
+              className="flex items-center space-x-1 text-sm text-red-500 hover:text-red-700 smooth-transition"
+            >
+              <IonIcon icon={trashOutline} className="text-sm" />
+              <span>Clear All</span>
+            </button>
+          </div>
+        </div>
+      </IonCardHeader>
+      <IonCardContent>
+        <div className="space-y-4">
+          {/* Sort all days in reverse chronological order */}
+          {(() => {
+            const sortedDays = [...allPeriodDays].sort(
+              (a, b) => parseDateString(b).getTime() - parseDateString(a).getTime()
+            );
+            
+            // Always show the most recent day
+            const mostRecentDay = sortedDays[0];
+            
+            return (
+              <>
+                {/* Most Recent Day */}
+                <div className="p-3 bg-gradient-to-r from-[#7dbdc8]/5 to-[#4e9dbf]/5 rounded-xl border border-[#7dbdc8]/20">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <span className="text-sm text-gray-500">
-                        {periodStartDates.length} period
-                        {periodStartDates.length !== 1 ? "s" : ""} logged
-                      </span>
-                      <button
-                        onClick={() => setShowClearAlert(true)}
-                        className="flex items-center space-x-1 text-sm text-red-500 hover:text-red-700 smooth-transition"
-                      >
-                        <IonIcon icon={trashOutline} className="text-sm" />
-                        <span>Clear All</span>
-                      </button>
-                    </div>
-                  </div>
-                </IonCardHeader>
-                <IonCardContent>
-                  <div className="space-y-4">
-                    {/* ALL LOGGED PERIODS */}
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-sm font-semibold text-gray-900">
-                          All Logged Periods
-                        </h3>
-                        <button
-                          onClick={() =>
-                            setShowAllRecentLogged(!showAllRecentLogged)
-                          }
-                          className="flex items-center space-x-1 text-sm text-[#4e9dbf] hover:text-[#2c5c6c] smooth-transition"
-                        >
-                          <IonIcon
-                            icon={showAllRecentLogged ? chevronUp : chevronDown}
-                            className="text-sm"
-                          />
-                          <span>
-                            {showAllRecentLogged ? "Show Less" : "Show All"}
-                          </span>
-                        </button>
+                      <div className="flex items-center justify-center w-10 h-10 bg-white rounded-lg border border-[#4e9dbf]/20">
+                        <IonIcon
+                          icon={calendar}
+                          className="text-[#4e9dbf]"
+                        />
                       </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {formatDate(mostRecentDay)}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Most recent
+                          {isPeriodStartDate(mostRecentDay) && (
+                            <span className="ml-2 text-[#b38216]">• Period Start</span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newAllPeriodDays = allPeriodDays.filter(d => d !== mostRecentDay);
+                        setAllPeriodDays(newAllPeriodDays);
+                        
+                        if (isPeriodStartDate(mostRecentDay)) {
+                          const newPeriodStartDates = periodStartDates.filter(d => d !== mostRecentDay);
+                          setPeriodStartDates(newPeriodStartDates);
+                          localStorage.setItem("periodStartDates", JSON.stringify(newPeriodStartDates));
+                        }
+                        
+                        localStorage.setItem("allPeriodDays", JSON.stringify(newAllPeriodDays));
+                        setToastMessage("Day removed from history");
+                        setShowToast(true);
+                      }}
+                      className="p-2 text-gray-400 rounded-lg hover:text-red-500 smooth-transition hover:bg-red-50"
+                    >
+                      <IonIcon icon={trashOutline} />
+                    </button>
+                  </div>
+                </div>
 
-                      {/* ALWAYS SHOW THE LATEST ONE */}
-                      {getLatestPeriod() && (
-                        <div className="p-3 mb-3 bg-gradient-to-r from-[#7dbdc8]/5 to-[#4e9dbf]/5 rounded-xl">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className="flex items-center justify-center w-10 h-10 bg-white rounded-lg border border-[#4e9dbf]/20">
-                                <IonIcon
-                                  icon={calendar}
-                                  className="text-[#4e9dbf]"
-                                />
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-900">
-                                  {getLatestPeriod() &&
-                                    formatDate(getLatestPeriod()!)}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  Most recent •{" "}
-                                  {getLatestPeriod() &&
-                                    formatCompactDate(getLatestPeriod()!)}{" "}
-                                  • Day 1
-                                </p>
-                                <p className="text-xs text-amber-600">
-                                  {(() => {
-                                    // Count days for this period
-                                    const periodStart = parseDateString(
-                                      getLatestPeriod()!,
-                                    );
-                                    let periodDays = 1;
-                                    for (let i = 1; i <= 7; i++) {
-                                      const nextDay = new Date(periodStart);
-                                      nextDay.setDate(nextDay.getDate() + i);
-                                      if (
-                                        allPeriodDays.includes(
-                                          getFormattedDate(nextDay),
-                                        )
-                                      ) {
-                                        periodDays++;
-                                      } else {
-                                        break;
-                                      }
-                                    }
-                                    return `${periodDays} day${periodDays > 1 ? "s" : ""}`;
-                                  })()}
-                                </p>
-                              </div>
-                            </div>
-                            <button
-                              onClick={() =>
-                                getLatestPeriod() &&
-                                removePeriod(getLatestPeriod()!)
-                              }
-                              className="p-2 text-gray-400 rounded-lg hover:text-red-500 smooth-transition hover:bg-red-50"
-                            >
-                              <IonIcon icon={trashOutline} />
-                            </button>
-                          </div>
-                        </div>
-                      )}
+                {/* Show All / Show Less Button - Only if there are more days */}
+                {sortedDays.length > 1 && (
+                  <button
+                    onClick={() => setShowAllRecentLogged(!showAllRecentLogged)}
+                    className="w-full flex items-center justify-center space-x-2 p-3 text-sm text-[#4e9dbf] hover:text-[#2c5c6c] smooth-transition border border-gray-200 rounded-lg hover:bg-gray-50"
+                  >
+                    <IonIcon 
+                      icon={showAllRecentLogged ? chevronUp : chevronDown} 
+                      className="text-sm" 
+                    />
+                    <span>
+                      {showAllRecentLogged 
+                        ? "Show Less" 
+                        : `Show All (${sortedDays.length - 1} more day${sortedDays.length - 1 !== 1 ? "s" : ""})`
+                      }
+                    </span>
+                  </button>
+                )}
 
-                      {/* SHOW ADDITIONAL ONES WHEN EXPANDED */}
-                      {showAllRecentLogged && periodStartDates.length > 1 && (
-                        <div className="space-y-2 overflow-y-auto max-h-96">
-                          {[...periodStartDates]
-                            .slice(0, -1)
-                            .reverse()
-                            .map((date, index) => (
-                              <div
-                                key={date}
-                                className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 smooth-transition"
-                              >
-                                <div className="flex items-center space-x-3">
-                                  <div className="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-lg">
-                                    <span className="text-xs font-medium text-gray-600">
-                                      {periodStartDates.length - index - 1}
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <p className="text-sm font-medium text-gray-900">
-                                      {date && formatDate(date)}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                      {date && formatCompactDate(date)}
-                                    </p>
-                                    <p className="text-xs text-amber-600">
-                                      {(() => {
-                                        // Count days for this period
-                                        const periodStart =
-                                          parseDateString(date);
-                                        let periodDays = 1;
-                                        for (let i = 1; i <= 7; i++) {
-                                          const nextDay = new Date(periodStart);
-                                          nextDay.setDate(
-                                            nextDay.getDate() + i,
-                                          );
-                                          if (
-                                            allPeriodDays.includes(
-                                              getFormattedDate(nextDay),
-                                            )
-                                          ) {
-                                            periodDays++;
-                                          } else {
-                                            break;
-                                          }
-                                        }
-                                        return `${periodDays} day${periodDays > 1 ? "s" : ""}`;
-                                      })()}
-                                    </p>
-                                  </div>
-                                </div>
-                                <button
-                                  onClick={() => removePeriod(date)}
-                                  className="p-1.5 text-gray-400 hover:text-red-500 smooth-transition rounded-lg hover:bg-red-50"
-                                >
-                                  <IonIcon
-                                    icon={trashOutline}
-                                    className="text-sm"
-                                  />
-                                </button>
-                              </div>
-                            ))}
-                        </div>
-                      )}
-
-                      {/* SHOW VIEW ALL BUTTON IF NOT EXPANDED AND MORE THAN 1 */}
-                      {!showAllRecentLogged && periodStartDates.length > 1 && (
-                        <button
-                          onClick={() => setShowAllRecentLogged(true)}
-                          className="w-full flex items-center justify-center space-x-2 p-3 text-sm text-[#4e9dbf] hover:text-[#2c5c6c] smooth-transition border border-dashed border-gray-300 rounded-lg hover:border-[#4e9dbf]/30 hover:bg-[#4e9dbf]/5"
+                {/* All Other Days - Only shown when expanded */}
+                {showAllRecentLogged && sortedDays.length > 1 && (
+                  <div className="mt-4 space-y-2">
+                    <h3 className="mb-2 text-sm font-semibold text-gray-700">
+                      Previous Logs
+                    </h3>
+                    <div className="pr-1 space-y-2 overflow-y-auto max-h-96">
+                      {sortedDays.slice(1).map((date) => (
+                        <div
+                          key={date}
+                          className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 smooth-transition"
                         >
-                          <IonIcon icon={eyeOutline} className="text-sm" />
-                          <span>
-                            View {periodStartDates.length - 1} more logged
-                            period{periodStartDates.length - 1 > 1 ? "s" : ""}
-                          </span>
-                        </button>
-                      )}
+                          <div className="flex items-center space-x-3">
+                            <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-[#e2a31d]/10 to-[#b38216]/10 rounded-lg border border-[#e2a31d]/20">
+                              <IonIcon
+                                icon={calendar}
+                                className="text-[#b38216] text-sm"
+                              />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">
+                                {formatDate(date)}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {(() => {
+                                  const dateObj = parseDateString(date);
+                                  return dateObj.toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "numeric"
+                                  });
+                                })()}
+                                {isPeriodStartDate(date) && (
+                                  <span className="ml-2 text-[#b38216]">• Period Start</span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const newAllPeriodDays = allPeriodDays.filter(d => d !== date);
+                              setAllPeriodDays(newAllPeriodDays);
+                              
+                              if (isPeriodStartDate(date)) {
+                                const newPeriodStartDates = periodStartDates.filter(d => d !== date);
+                                setPeriodStartDates(newPeriodStartDates);
+                                localStorage.setItem("periodStartDates", JSON.stringify(newPeriodStartDates));
+                              }
+                              
+                              localStorage.setItem("allPeriodDays", JSON.stringify(newAllPeriodDays));
+                              setToastMessage("Day removed from history");
+                              setShowToast(true);
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-red-500 smooth-transition rounded-lg hover:bg-red-50"
+                          >
+                            <IonIcon icon={trashOutline} className="text-sm" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                </IonCardContent>
-              </IonCard>
-            </div>
-          )}
+                )}
+              </>
+            );
+          })()}
+        </div>
+      </IonCardContent>
+    </IonCard>
+  </div>
+)}
         </div>
       )}
 
